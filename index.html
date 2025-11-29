@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Elektronik Tarigan</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #0a192f;
+            --secondary: #112240;
+            --accent: #64ffda;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --card-bg: #112240;
+            --card-hover: #1d3b63;
+            --success: #64ffda;
+            --error: #ff5a5f;
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--secondary);
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .page {
+            display: none;
+            padding-bottom: 80px;
+            min-height: calc(100vh - 130px);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            background: var(--card-hover);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .price {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .rating {
+            color: #f9d71c;
+            margin: 5px 0;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--secondary);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            background-color: rgba(100, 255, 218, 0.1);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .nav-item span {
+            font-size: 12px;
+        }
+
+        .action-button {
+            background-color: var(--accent);
+            color: var(--primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+
+        .action-button:hover {
+            transform: scale(1.02);
+        }
+
+        .back-button {
+            background-color: var(--secondary);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--secondary), var(--card-hover));
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 20px;
+        }
+
+        .cart-count {
+            background-color: var(--accent);
+            color: var(--primary);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--secondary);
+        }
+
+        .cart-item-image {
+            width: 60px;
+            height: 60px;
+            background-color: var(--secondary);
+            border-radius: 8px;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+
+        .cart-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cart-item-details {
+            flex: 1;
+        }
+
+        .remove-button {
+            background-color: var(--error);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .cart-total {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--secondary);
+            border-radius: 8px;
+        }
+
+        .total-amount {
+            font-size: 24px;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background-color: var(--accent);
+            color: var(--primary);
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .category-filter button {
+            background-color: var(--secondary);
+            color: var(--text-secondary);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .category-filter button.active {
+            background-color: var(--accent);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div>⚡</div>
+            <h1>Toko Elektronik Tarigan</h1>
+        </div>
+    </header>
+
+    <div class="notification" id="notification"></div>
+
+    <div class="container">
+        <!-- Halaman Beranda -->
+        <div id="home-page" class="page active">
+            <h2>Selamat Datang di Toko Elektronik Tarigan</h2>
+            <p>Temukan elektronik dan gadget terbaru dengan harga terbaik!</p>
+            
+            <div class="card" onclick="showPage('products-page')">
+                <h3>📦 Produk Terpopuler</h3>
+                <p>Lihat produk elektronik paling laris bulan ini.</p>
+            </div>
+            
+            <div class="card" onclick="showPage('products-page')">
+                <h3>🎯 Kategori Unggulan</h3>
+                <p>Smartphone, Laptop, Audio, TV, Wearable, dan Aksesoris.</p>
+            </div>
+        </div>
+
+        <!-- Halaman Produk -->
+        <div id="products-page" class="page">
+            <h2>Daftar Produk</h2>
+            
+            <div class="category-filter" id="categoryFilter"></div>
+            
+            <div id="products-list">
+                <div class="loading">Memuat produk dari database...</div>
+            </div>
+        </div>
+
+        <!-- Halaman Detail Produk -->
+        <div id="product-detail-page" class="page">
+            <button class="back-button" onclick="showPage('products-page')">← Kembali</button>
+            <div id="product-detail-content"></div>
+        </div>
+
+        <!-- Halaman Keranjang -->
+        <div id="cart-page" class="page">
+            <h2>Keranjang Belanja</h2>
+            <div id="cart-items"></div>
+            <div id="cart-total"></div>
+            <button class="action-button" onclick="checkout()">💳 Checkout</button>
+        </div>
+
+        <!-- Halaman Profil -->
+        <div id="profile-page" class="page">
+            <div style="text-align: center; padding: 40px 20px;">
+                <h2>Louis David Verges Tarigan</h2>
+                <p style="margin-top: 10px; background: var(--secondary); padding: 10px; border-radius: 5px; display: inline-block;">21120122140154</p>
+            </div>
+            
+            <div class="card" onclick="showPage('products-page')">
+                <h3>📦 Jelajahi Produk</h3>
+                <p>Temukan berbagai produk elektronik dan gadget terbaru.</p>
+            </div>
+            
+            <div class="card" onclick="showPage('cart-page')">
+                <h3>🛒 Keranjang Saya</h3>
+                <p>Lihat produk yang sudah ditambahkan ke keranjang.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-page="home-page">
+            <i>🏠</i>
+            <span>Beranda</span>
+        </div>
+        <div class="nav-item" data-page="products-page">
+            <i>📦</i>
+            <span>Produk</span>
+        </div>
+        <div class="nav-item" data-page="cart-page">
+            <i>🛒</i>
+            <span>Keranjang</span>
+            <div class="cart-count" id="cartCount">0</div>
+        </div>
+        <div class="nav-item" data-page="profile-page">
+            <i>👤</i>
+            <span>Profil</span>
+        </div>
+    </div>
+
+    <script>
+        // ===== KONFIGURASI SUPABASE =====
+        // GANTI dengan API URL dan anon key dari project Supabase Anda!
+        const SUPABASE_URL = 'https://ntgdoksjcwbuevhfoamz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Z2Rva3NqY3didWV2aGZvYW16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MDk1OTksImV4cCI6MjA3OTk4NTU5OX0.QOoy7jcxNy2xJiXhiivekj32ZurX2xAAkLYSXHzZ1eE';
+        
+        // Inisialisasi Supabase Client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ===== VARIABEL GLOBAL =====
+        let cart = [];
+        let currentCategory = 'Semua';
+
+        // ===== FUNGSI DATABASE =====
+        
+        // Ambil semua produk dari database
+        async function fetchProducts(category = null) {
+            try {
+                let query = supabase.from('products').select('*');
+                
+                if (category && category !== 'Semua') {
+                    query = query.eq('category', category);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                return data;
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                showNotification('Gagal memuat produk', 'error');
+                return [];
+            }
+        }
+
+        // Ambil produk berdasarkan ID
+        async function fetchProductById(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                return data;
+            } catch (error) {
+                console.error('Error fetching product:', error);
+                return null;
+            }
+        }
+
+        // Simpan item ke keranjang (ke database)
+        async function saveCartToDatabase(productId) {
+            try {
+                const { data, error } = await supabase
+                    .from('cart')
+                    .insert([
+                        { product_id: productId, user_id: 'guest', quantity: 1 }
+                    ]);
+                
+                if (error) throw error;
+                return true;
+            } catch (error) {
+                console.error('Error saving to cart:', error);
+                return false;
+            }
+        }
+
+        // Ambil keranjang dari database
+        async function fetchCart() {
+            try {
+                const { data, error } = await supabase
+                    .from('cart')
+                    .select(`
+                        id,
+                        quantity,
+                        products (*)
+                    `)
+                    .eq('user_id', 'guest');
+                
+                if (error) throw error;
+                return data;
+            } catch (error) {
+                console.error('Error fetching cart:', error);
+                return [];
+            }
+        }
+
+        // Hapus item dari keranjang
+        async function removeCartItem(cartId) {
+            try {
+                const { error } = await supabase
+                    .from('cart')
+                    .delete()
+                    .eq('id', cartId);
+                
+                if (error) throw error;
+                return true;
+            } catch (error) {
+                console.error('Error removing cart item:', error);
+                return false;
+            }
+        }
+
+        // ===== FUNGSI UI =====
+
+        // Navigasi halaman
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                nav.classList.remove('active');
+                if (nav.getAttribute('data-page') === pageId) {
+                    nav.classList.add('active');
+                }
+            });
+            
+            if (pageId === 'products-page') {
+                loadProducts();
+            } else if (pageId === 'cart-page') {
+                loadCart();
+            }
+        }
+
+        // Load produk dari database
+        async function loadProducts(category = null) {
+            const productsList = document.getElementById('products-list');
+            productsList.innerHTML = '<div class="loading">Memuat produk...</div>';
+            
+            const products = await fetchProducts(category);
+            
+            if (products.length === 0) {
+                productsList.innerHTML = '<div class="loading">Tidak ada produk</div>';
+                return;
+            }
+            
+            productsList.innerHTML = '';
+            
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="product-image">
+                        <img src="${product.photo}" alt="${product.name}">
+                    </div>
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <div class="price">Rp ${product.price.toLocaleString('id-ID')}</div>
+                    <div class="rating">${getStars(product.rating)} (${product.rating})</div>
+                `;
+                card.onclick = () => showProductDetail(product.id);
+                productsList.appendChild(card);
+            });
+            
+            initCategoryFilter();
+        }
+
+        // Inisialisasi filter kategori
+        function initCategoryFilter() {
+            const categories = ['Semua', 'Smartphone', 'Laptop', 'Audio', 'TV', 'Wearable', 'Aksesoris'];
+            const filter = document.getElementById('categoryFilter');
+            filter.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.textContent = cat;
+                if (cat === currentCategory) btn.classList.add('active');
+                btn.onclick = () => filterByCategory(cat);
+                filter.appendChild(btn);
+            });
+        }
+
+        // Filter kategori
+        async function filterByCategory(category) {
+            currentCategory = category;
+            await loadProducts(category === 'Semua' ? null : category);
+        }
+
+        // Tampilkan detail produk
+        async function showProductDetail(productId) {
+            const product = await fetchProductById(productId);
+            
+            if (!product) {
+                showNotification('Produk tidak ditemukan', 'error');
+                return;
+            }
+            
+            const content = document.getElementById('product-detail-content');
+            content.innerHTML = `
+                <div class="product-image">
+                    <img src="${product.photo}" alt="${product.name}">
+                </div>
+                <h2>${product.name}</h2>
+                <div class="rating">${getStars(product.rating)} (${product.rating})</div>
+                <div class="price">Rp ${product.price.toLocaleString('id-ID')}</div>
+                <p>${product.description}</p>
+                
+                <div class="card">
+                    <h3>Spesifikasi</h3>
+                    <p>• Kategori: ${product.category}</p>
+                    <p>• Garansi: 2 Tahun</p>
+                    <p>• Stok: Tersedia</p>
+                </div>
+                
+                <button class="action-button" onclick="addToCart(${product.id})">
+                    🛒 Tambah ke Keranjang
+                </button>
+            `;
+            
+            showPage('product-detail-page');
+        }
+
+        // Tambah ke keranjang
+        async function addToCart(productId) {
+            const success = await saveCartToDatabase(productId);
+            
+            if (success) {
+                showNotification('Produk ditambahkan ke keranjang!');
+                updateCartCount();
+            } else {
+                showNotification('Gagal menambahkan produk', 'error');
+            }
+        }
+
+        // Load keranjang
+        async function loadCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            
+            cartItems.innerHTML = '<div class="loading">Memuat keranjang...</div>';
+            
+            const cartData = await fetchCart();
+            
+            if (cartData.length === 0) {
+                cartItems.innerHTML = '<div class="loading">Keranjang kosong</div>';
+                cartTotal.innerHTML = '';
+                return;
+            }
+            
+            cartItems.innerHTML = '';
+            let total = 0;
+            
+            cartData.forEach(item => {
+                const product = item.products;
+                total += product.price * item.quantity;
+                
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <div class="cart-item-image">
+                        <img src="${product.photo}" alt="${product.name}">
+                    </div>
+                    <div class="cart-item-details">
+                        <h3>${product.name}</h3>
+                        <div class="price">Rp ${product.price.toLocaleString('id-ID')}</div>
+                    </div>
+                    <button class="remove-button" onclick="removeFromCart(${item.id})">Hapus</button>
+                `;
+                cartItems.appendChild(div);
+            });
+            
+            cartTotal.innerHTML = `
+                <h3>Total Belanja</h3>
+                <div class="total-amount">Rp ${total.toLocaleString('id-ID')}</div>
+                <p>${cartData.length} produk dalam keranjang</p>
+            `;
+            
+            updateCartCount();
+        }
+
+        // Hapus dari keranjang
+        async function removeFromCart(cartId) {
+            const success = await removeCartItem(cartId);
+            
+            if (success) {
+                showNotification('Produk dihapus dari keranjang');
+                loadCart();
+            } else {
+                showNotification('Gagal menghapus produk', 'error');
+            }
+        }
+
+        // Update jumlah item di keranjang
+        async function updateCartCount() {
+            const cartData = await fetchCart();
+            document.getElementById('cartCount').textContent = cartData.length;
+        }
+
+        // Checkout
+        async function checkout() {
+            const cartData = await fetchCart();
+            
+            if (cartData.length === 0) {
+                showNotification('Keranjang masih kosong', 'error');
+                return;
+            }
+            
+            let total = 0;
+            cartData.forEach(item => {
+                total += item.products.price * item.quantity;
+            });
+            
+            // Hapus semua item dari keranjang
+            for (const item of cartData) {
+                await removeCartItem(item.id);
+            }
+            
+            showNotification(`Checkout berhasil! Total: Rp ${total.toLocaleString('id-ID')}`);
+            showPage('home-page');
+            updateCartCount();
+        }
+
+        // Notifikasi
+        function showNotification(message, type = 'success') {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.style.backgroundColor = type === 'error' ? '#ff5a5f' : '#64ffda';
+            notif.classList.add('show');
+            
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 3000);
+        }
+
+        // Generate bintang rating
+        function getStars(rating) {
+            const full = Math.floor(rating);
+            return '★'.repeat(full) + '☆'.repeat(5 - full);
+        }
+
+        // Event listeners
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                showPage(this.getAttribute('data-page'));
+            });
+        });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartCount();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "IPHONE 17 PROMAX",
+      "description": "iPhone 17 Pro Max dengan chip A19 Bionic, kamera 108MP, dan baterai tahan 2 hari",
+      "price": "Rp 25.999.000",
+      "category": "Smartphone",
+      "photo": "https://images.unsplash.com/photo-1592286927505-1def25115558?w=500&h=500&fit=crop",
+      "rating": 4.9,
+      "numericPrice": 25999000
+    },
+    {
+      "id": 2,
+      "name": "LAPTOP ROG",
+      "description": "Laptop gaming ROG dengan RTX 5080, processor Intel i9, dan layar 240Hz",
+      "price": "Rp 35.999.000",
+      "category": "Laptop", 
+      "photo": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop",
+      "rating": 4.8,
+      "numericPrice": 35999000
+    }
+  ],
+  "promo-products": [
+    {
+      "id": 101,
+      "name": "AIRPODS",
+      "description": "AirPods dengan kualitas audio tinggi dan noise cancellation",
+      "price": "Rp 2.499.000",
+      "originalPrice": "Rp 3.570.000",
+      "category": "Audio",
+      "photo": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop",
+      "rating": 4.8,
+      "numericPrice": 2499000
+    }
+  ]
+}
